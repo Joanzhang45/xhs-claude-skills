@@ -1,58 +1,58 @@
 <div align="center">
 
-# 📕 RedNote to Obsidian
+# 📕 小红书转 Obsidian
 
-### Turn RedNote posts into actionable Obsidian notes — with video transcription
+### 把小红书帖子变成可操作的 Obsidian 笔记 — 支持视频语音转录
 
 [![Platform](https://img.shields.io/badge/macOS-black?logo=apple&logoColor=white)](https://github.com/chenxiachan/xhs-claude-skills)
-[![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-7C3AED)](https://docs.anthropic.com/en/docs/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-插件-7C3AED)](https://docs.anthropic.com/en/docs/claude-code)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**[中文](README_CN.md)** &nbsp;|&nbsp; English
+中文 &nbsp;|&nbsp; **[English](README_EN.md)**
 
 </div>
 
 ---
 
-## ✨ What it does
+## ✨ 功能
 
-| Command | Description |
-|:--------|:------------|
-| 📄 `/xhs <url>` | Extract a single post — text, images, video transcription |
-| 📦 `/xhs-batch <urls>` | Batch extract multiple posts |
-| 🔍 `/xhs-analyze [keyword]` | Analyze saved posts — summarize, compare, find patterns |
+| 命令 | 说明 |
+|:-----|:-----|
+| 📄 `/xhs <链接>` | 提取单个帖子 — 文字、图片、视频转录 |
+| 📦 `/xhs-batch <链接列表>` | 批量提取多个帖子 |
+| 🔍 `/xhs-analyze [关键词]` | 分析已保存的帖子 — 总结、对比、发现模式 |
 
-## 🏗 How it works
+## 🏗 工作原理
 
 ```
- 📕 RedNote URL
+ 📕 小红书链接
      │
      ▼
  ┌─────────────────────────┐
- │  🍪 Cookie auth          │  ← First-run: auto-guided 30s setup
+ │  🍪 Cookie 认证          │  ← 首次运行：自动引导，30秒搞定
  └────────────┬────────────┘
               ▼
  ┌─────────────────────────┐
- │  📦 Parse page data      │  ← One HTTP request, no browser needed
+ │  📦 解析页面数据         │  ← 一次 HTTP 请求，无需浏览器
  └────┬──────┬──────┬──────┘
       ▼      ▼      ▼
     📝       🖼     🎬
-   Text    Images  Video
+   文字     图片    视频
                      │
                 ┌────┴────┐
                 │ ffmpeg  │
                 │ whisper │
                 └────┬────┘
                      ▼
-              🗒 Obsidian Note
-          Scan in 5s → dig or skip
+              🗒 Obsidian 笔记
+           扫一眼 → 深挖 or 跳过
 ```
 
-> 🚫 No MCP server &nbsp; 🚫 No Playwright &nbsp; 🚫 No headless browser
+> 🚫 不需要 MCP 服务 &nbsp; 🚫 不需要 Playwright &nbsp; 🚫 不需要无头浏览器
 >
-> ✅ Just cookies + HTTP + local whisper
+> ✅ 只用 cookies + HTTP + 本地 whisper
 
-## 📂 Output
+## 📂 输出格式
 
 ```
 xhs/
@@ -63,70 +63,70 @@ xhs/
 └── 🎬 video/
 ```
 
-### 🗒 Note format
+### 🗒 笔记结构
 
 ```markdown
-# One-line insight                     ← judgment, not description
+# 一句话洞察                          ← 判断，不是描述
 
-Core argument, 2-3 sentences.
+核心论点，2-3 句话。
 
-**Relevance:** Why this matters to you.
-**Worth digging?** Yes/No + reason.
+**与我的关联：** 为什么跟我有关。
+**值得深挖吗：** 是/否 + 理由。
 
-> [!tip]- Details                       ← 📌 collapsed by default
-> Structured content...
+> [!tip]- 详情                         ← 📌 默认折叠
+> 结构化内容...
 
-> [!info]- Metadata                     ← 📌 collapsed by default
-> Source · date · stats · tags
+> [!info]- 笔记属性                     ← 📌 默认折叠
+> 来源 · 日期 · 互动 · 标签
 ```
 
-## 🚀 Quick start
+## 🚀 快速开始
 
-### 1. Install the plugin
+### 1. 安装插件
 
 ```bash
 claude /plugin install chenxiachan/xhs-claude-skills
 ```
 
-### 2. First run
+### 2. 首次运行
 
 ```
 /xhs https://www.xiaohongshu.com/explore/...
 ```
 
-On first run, the skill will detect no cookies and **guide you through a 30-second setup**:
+首次运行时，skill 会检测到没有 cookies 并**自动引导你完成 30 秒设置**：
 
-1. 🌐 Open Chrome → xiaohongshu.com (make sure you're logged in)
-2. 🔧 Open DevTools Console (F12)
-3. 📋 Paste the snippet the skill gives you → cookies auto-copied
-4. 💾 Save to `~/cookies.json`
-5. ✅ Done — all future runs use this automatically
+1. 🌐 打开 Chrome → xiaohongshu.com（确保已登录）
+2. 🔧 打开 DevTools Console（F12）
+3. 📋 粘贴 skill 给出的代码 → cookies 自动复制到剪贴板
+4. 💾 保存到 `~/cookies.json`
+5. ✅ 搞定 — 之后每次运行自动使用
 
-> 🔄 When cookies expire, the skill detects it and re-prompts. No manual checking needed.
+> 🔄 Cookies 过期时 skill 会自动检测并重新引导，无需手动检查。
 
-### 3. Dependencies (video transcription only)
+### 3. 依赖（仅视频转录需要）
 
-| | Install | Required for |
-|:--|:--------|:-------------|
-| 🎵 ffmpeg | `brew install ffmpeg` | Audio extraction |
-| 🗣 mlx-whisper | `pip install mlx-whisper` | Speech-to-text |
+| | 安装 | 用途 |
+|:--|:-----|:-----|
+| 🎵 ffmpeg | `brew install ffmpeg` | 提取音频 |
+| 🗣 mlx-whisper | `pip install mlx-whisper` | 语音转文字 |
 
-> 💡 Text/image posts work with zero dependencies. Video transcription needs the above.
+> 💡 文字/图片帖子零依赖即可运行。视频转录才需要以上工具。
 
-## ⚙️ Configuration
+## ⚙️ 配置
 
-Edit paths in `skills/xhs/SKILL.md` if your setup differs:
+如果路径不同，编辑 `skills/xhs/SKILL.md` 中的常量：
 
-| Setting | Default |
-|:--------|:--------|
+| 配置项 | 默认值 |
+|:------|:------|
 | 🍪 Cookies | `~/cookies.json` |
-| 📁 Output dir | `~/Documents/Obsidian Vault/xhs` |
+| 📁 输出目录 | `~/Documents/Obsidian Vault/xhs` |
 
-## 🎨 Personalization
+## 🎨 个性化
 
-Each note includes a **"Relevance"** line connecting the content to your background. Edit the user description in `skills/xhs/SKILL.md` (step 4) to match your context.
+每条笔记包含"**与我的关联**"——根据你的背景自动生成。编辑 `skills/xhs/SKILL.md` 步骤 4 中的用户描述，改成你自己的身份和方向即可。
 
-## 📁 Plugin structure
+## 📁 插件结构
 
 ```
 rednote-to-obsidian/
