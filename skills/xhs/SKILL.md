@@ -12,13 +12,58 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 - Cookies 文件: `~/cookies.json`（从 Chrome 导出的小红书 cookies）
 - Obsidian 保存目录: `~/Documents/Obsidian Vault/xhs`
 - Whisper 模型: `mlx-community/whisper-large-v3-turbo`
+- L0 匿名工具（可選）: `$XHS_ANON_FETCH`（若未設定，預設試 `~/Projects/claude-telegram-channel/scripts/xhs_anon_fetch.py`）
 
 ## 输入
 用户提供的小红书链接: $ARGUMENTS
 
 ## 提取流程
 
-### 步骤 0：检查 Cookies
+### 🚨 鐵則：有 L0 工具就永遠先試匿名，不要一開口就 cookies
+
+xhs 抓取有**三級階梯**：
+| Level | 路徑 | 什麼時候用 |
+|---|---|---|
+| **L0 匿名**（可選） | `xhs_anon_fetch.py`（iPhone UA 解短連結 + 桌機 UA 打 explore） | 工具存在時**永遠先試這條** |
+| **L1 登入態** | `~/cookies.json` + iPhone UA | L0 失敗或工具不存在時使用 |
+| **L2 刷 cookies** | 請用戶從 Chrome 導出 | L1 也失敗才用 |
+
+**絕對禁止**：
+- 🚫 把「當前筆記暫時無法瀏覽」或「頁面不見了」當成下架結論 — 那只代表「這個入口被擋」
+- 🚫 下架結論必須所有可用 entry 都失敗 + xhs 明確回「笔记已删除」
+
+### 步驟 0：L0 匿名抓取（僅在工具存在時優先走這條）
+
+**先偵測 L0 工具是否存在**：
+
+```bash
+ANON_TOOL="${XHS_ANON_FETCH:-$HOME/Projects/claude-telegram-channel/scripts/xhs_anon_fetch.py}"
+if [ ! -f "$ANON_TOOL" ]; then
+  echo "L0 工具不存在，跳過到步驟 0b（L1 登入態）"
+  # 直接跳到步驟 0b
+fi
+```
+
+**工具存在時執行**：
+
+```bash
+python3 "$ANON_TOOL" "<URL或短連結>" /tmp/xhs_post.json
+```
+
+成功 exit 0 → 直接跳到步驟 3（媒體下載）和步驟 4（寫 vault），不用 cookies。
+
+失敗時根據 stderr 錯誤碼決定下一步：
+- `RESOLVE_FAIL`：短連結壞掉或真 404，先手動用 iPhone UA curl 驗一次，還不行才宣告失敗
+- `NO_NOTE_MAP` / `XSEC_EXPIRED`：降到步驟 0b（L1 登入態）
+- `NO_INITIAL_STATE`：xhs 頁面格式改了，報給主 agent 不要自己硬抓
+
+> 🛠 **L0 工具安裝說明**：
+> - Mac Mini（小特助環境）預設已安裝在 `~/Projects/claude-telegram-channel/scripts/xhs_anon_fetch.py`
+> - 其他環境（Windows 個人電腦）沒這支工具 → 自動跳過 L0，走 L1 登入態即可
+> - 想覆寫路徑可設定環境變數 `XHS_ANON_FETCH=/path/to/your/script.py`
+
+### 步驟 0b：L1 登入態（L0 失敗或工具不存在時使用）
+
 1. 检查 `~/cookies.json` 是否存在
 2. 如果不存在，告知用户需要从 Chrome 导出 cookies：
    - 在 Chrome 打开 xiaohongshu.com 并确认已登录
@@ -79,7 +124,7 @@ data = json.loads(raw)
 # 包含: title, desc, type, time, user, imageList, video, interactInfo, ipLocation
 ```
 
-如果请求失败（被重定向到 404/错误页），说明 cookies 过期，提示用户按步骤 0 重新导出。
+如果请求失败（被重定向到 404/错误页），说明 cookies 过期，提示用户按步骤 0b 重新导出。
 
 ### 步骤 3：视频转录（仅视频帖子）
 如果帖子 type 为 video，执行以下子步骤：
