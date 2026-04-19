@@ -36,7 +36,19 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
    - 然后终止流程，等用户完成后重新运行
 
 ### 步骤 1：解析链接
-从 URL 中提取帖子 ID（24 位十六进制字符串）和 xsec_token 参数。
+
+> ⚠️ **鐵則：xhslink.com 短連結必須用 iPhone UA 展開**
+> 桌機 UA 拿到的 redirect 結果缺 `xsec_token` / `app_platform=ios` / `type`，會被 xhs 擋成 `error_code=300031`。這不是 cookies 問題，刷 cookies 也沒用。
+
+如果輸入是短連結（`xhslink.com/o/...`），先用 iPhone UA follow redirect 拿 full URL：
+
+```bash
+IPHONE_UA="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
+FULL_URL=$(curl -sSL -A "$IPHONE_UA" -o /dev/null -w "%{url_effective}" "<短連結>")
+# FULL_URL 會是 https://www.xiaohongshu.com/discovery/item/<ID>?app_platform=ios&...&xsec_token=...
+```
+
+用這個 FULL_URL 走步驟 2（不要把短連結直接丟步驟 2）。從 FULL_URL 提取帖子 ID（24 位十六進制）和 xsec_token 參數。
 
 ### 步骤 2：获取帖子内容
 使用 Python 脚本，通过 Cookies 请求帖子页面 HTML，从 `window.__INITIAL_STATE__` 解析全部帖子数据：
@@ -54,7 +66,7 @@ ctx.verify_mode = ssl.CERT_NONE
 
 req = urllib.request.Request('<帖子URL>')
 req.add_header('Cookie', cookie_str)
-req.add_header('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
+req.add_header('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1')
 
 resp = urllib.request.urlopen(req, timeout=15, context=ctx)
 html = resp.read().decode('utf-8', errors='ignore')
